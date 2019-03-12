@@ -8,7 +8,8 @@ namespace IntelektikaUzduotis2
 {
     class Elemantas
     {
-        private string name { get; set; }
+        public Guid Id { get; set; }
+        public string name { get; set; }
         public float x1 { get; set; }
         public float x2 { get; set; }
         public bool posible { get; set; }
@@ -16,6 +17,7 @@ namespace IntelektikaUzduotis2
         public double d1 { get; set; }
         public double d2 { get; set; }
         public double d3 { get; set; }
+        public Elemantas() { }
         public Elemantas(string name, float x1, float x2, bool posible)
         {
 
