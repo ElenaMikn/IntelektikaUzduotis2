@@ -13,21 +13,18 @@ namespace IntelektikaUzduotis2
 {
     public partial class Form1 : Form
     {
-        public bool status = false;
-        private int pointSize = 3;
-        private List<Elemantas> elemantai;
-        Elemantas naujas;
+        private int pointSize = 4;
+        private List<Elementas> elementai;
+        Elementas naujas;
         private string connectionString;
         public Form1()
         {
             InitializeComponent();
-            status = true;
-            //createDB();
             panel1.Refresh();
-            
+//             createDB();
         }
 
-        private void Button1_Click(object sender, EventArgs e)
+        private void buttonSkaiciuoti_Click(object sender, EventArgs e)
         {
             float x1;
             float.TryParse(inputX1.Text, out x1);
@@ -38,57 +35,65 @@ namespace IntelektikaUzduotis2
             int k;
             int.TryParse(inputK.Text, out k);
 
-            naujas = new Elemantas("naujas", x1, x2, false);
-            foreach (Elemantas el in elemantai)
+            if (x1 < 0 || x2 < 0 || k < 0)
+            {
+                MessageBox.Show("Blogai suvesti duomenis");
+            }
+
+            naujas = new Elementas("naujas", x1, x2, false);
+            //lyginame naujai sukurta elementa su turimais, gautus atstumus saugome senuose elementuose
+            foreach (Elementas el in elementai)
             {
                 el.D1(naujas);
                 el.D2(naujas);
                 el.D3(naujas);
             }
-            List<Elemantas> d1Elemantai = elemantai.OrderBy(t => t.d1).ToList().Take(k).ToList();
-            List<Elemantas> d2Elemantai = elemantai.OrderBy(t => t.d2).ToList().Take(k).ToList();
-            List<Elemantas> d3Elemantai = elemantai.OrderBy(t => t.d3).ToList().Take(k).ToList();
+            //Elementus surusiuojam (pagal skirtingus gautus atstumus), paimame k elemetu,
+            List<Elementas> d1Elementai = elementai.OrderBy(t => t.d1).Take(k).ToList();
+            List<Elementas> d2Elementai = elementai.OrderBy(t => t.d2).Take(k).ToList();
+            List<Elementas> d3Elementai = elementai.OrderBy(t => t.d3).Take(k).ToList();
 
-            double rezD1 = d1Elemantai.Average(t => t.posible ? 1 : 0);
-            double rezD2 = d2Elemantai.Average(t => t.posible ? 1 : 0);
-            double rezD3 = d3Elemantai.Average(t => t.posible ? 1 : 0);
+            //skaiciuojam vidurkius gautu listu
+            double averageD1 = d1Elementai.Average(t => t.posible ? 1 : 0);
+            double averageD2 = d2Elementai.Average(t => t.posible ? 1 : 0);
+            double averageD3 = d3Elementai.Average(t => t.posible ? 1 : 0);
 
-            int d1Grupe = GetGrupe(rezD1);
-            int d2Grupe = GetGrupe(rezD2);
-            int d3Grupe = GetGrupe(rezD3);
-            string isvada= "Neaisku";
+            //gauname grupe pagal gauta vidurki
+            int d1Grupe = GetGrupe(averageD1);
+            int d2Grupe = GetGrupe(averageD2);
+            int d3Grupe = GetGrupe(averageD3);
+
+            string isvada = "Neaisku";
             if ((d1Grupe + d2Grupe + d3Grupe) == 3)
             {
                 isvada = "Teigiamas";
                 naujas.posible = true;
-                elemantai.Add(naujas);
+                elementai.Add(naujas);
             }
-            else if ((d1Grupe + d2Grupe + d3Grupe) == 3)
+            else if ((d1Grupe + d2Grupe + d3Grupe) == 0)
             {
                 isvada = "Neigiamas";
                 naujas.posible = false;
-                elemantai.Add(naujas);
+                elementai.Add(naujas);
             }
-            rezultatas.Text = "pagal D1: " + GetGrupeString(d1Grupe) + "  D2: " + GetGrupeString(d2Grupe) + " D3: " + GetGrupeString(d3Grupe)+ ". Galutine išvada: "+ isvada;
-            
 
-            status = true;
+            rezultatas.Text = "pagal D1: " + GetGrupeString(d1Grupe) + "  D2: " + GetGrupeString(d2Grupe) + " D3: " + GetGrupeString(d3Grupe) + ". Galutine išvada: " + isvada;
             panel1.Refresh();
-           
-
         }
+        //gauname grupes pavadinimą
         private string GetGrupeString(int rez)
         {
-            if (rez==1)
+            if (rez == 1)
             {
                 return "Teigiamas";
             }
-            if(rez==0)
+            if (rez == 0)
             {
                 return "Neigiamas";
             }
             return "Neaisku";
         }
+        //apskaiciuojame grupe
         private int GetGrupe(double rez)
         {
             if (rez > 0.5)
@@ -101,76 +106,81 @@ namespace IntelektikaUzduotis2
             }
             return -1;
         }
+        //perpaisome taskus
         private void panel1_Paint(object sender, PaintEventArgs e)
         {
-            if (status && elemantai!=null)
+            if (elementai != null)
             {
                 Graphics g = e.Graphics;
-                foreach(Elemantas el in elemantai)
+                foreach (Elementas el in elementai)
                 {
-                    g.FillRectangle(el.posible? Brushes.Green: Brushes.Red,(el.x1*50), 500 - (el.x2*50), pointSize, pointSize);
+                    g.FillRectangle(el.posible ? Brushes.Red : Brushes.Blue, (el.x1 * 50), 500 - (el.x2 * 50), pointSize, pointSize);
                 }
                 if (naujas != null)
                 {
-                    g.FillRectangle(Brushes.Blue,  (naujas.x1 * 50), 500 - (naujas.x2 * 50), pointSize, pointSize);
+                    g.FillRectangle(Brushes.Green, (naujas.x1 * 50), 500 - (naujas.x2 * 50), pointSize, pointSize);
                 }
                 g.Dispose();
             }
             dataGridView();
-           
+
         }
+        //užpildome duomenų lentele
         private void dataGridView()
         {
-            if (elemantai != null)
+            if (elementai != null)
             {
                 dataGridView1.Rows.Clear();
-                foreach (Elemantas el in elemantai)
+                foreach (Elementas el in elementai)
                 {
                     dataGridView1.Rows.Add(el.name, el.x1, el.x2, el.posible ? "+" : "-");
                 }
             }
         }
+
+        //irasome duomenis i LitleDB
         private void InsertIntoLitleDB()
         {
             if (connectionString == "") return;
-            
-                using (var db = new LiteRepository(connectionString))
-                {
-                    foreach (Elemantas el in elemantai)
-                    {
-                        db.Upsert(el);
-                    }
 
+            using (var db = new LiteRepository(connectionString))
+            {
+                foreach (Elementas el in elementai)
+                {
+                    db.Upsert(el);
                 }
-            
+
+            }
+
         }
+        //skaitome duomenis is LitleDB
         private void GetFromLitledb()
         {
             if (connectionString == "") return;
             using (var db = new LiteDatabase(connectionString))
             {
-                var collection = db.GetCollection<Elemantas>("Elemantas");
-                elemantai = new List<Elemantas>();
-                foreach (Elemantas co in collection.FindAll().OrderBy(x => x.name))
+                var collection = db.GetCollection<Elementas>("Elementas");
+                elementai = new List<Elementas>();
+                foreach (Elementas co in collection.FindAll().OrderBy(x => x.name))
                 {
-                    elemantai.Add(co);
+                    elementai.Add(co);
 
                 }
             }
         }
-
-        private void Button2_Click(object sender, EventArgs e)
+        // pasirenkame iskur skaitysim duomenis ir kviečia duomenu uzkrivimą
+        private void buttonUzkrautiDuomenis_Click(object sender, EventArgs e)
         {
             string selectedDB = comboBox1.SelectedItem.ToString();
             if (selectedDB != "")
             {
-                connectionString = "../../"+selectedDB+".db";
+                connectionString = "../../" + selectedDB + ".db";
                 GetFromLitledb();
             }
             panel1.Refresh();
         }
-
-        private void Button3_Click(object sender, EventArgs e)
+        //pasirenkame kur saugosime duomenis ir iskviecia duomenu irasima
+        private void buttonIssaugotiDuomenis_Click(object sender, EventArgs e)
         {
             string selectedDB = comboBox1.SelectedItem.ToString();
             if (selectedDB != "")
@@ -179,58 +189,72 @@ namespace IntelektikaUzduotis2
                 InsertIntoLitleDB();
             }
         }
+        //viena karta naudojama funkcija uzpildyti buomeu baza
         private void createDB()
         {
-           elemantai = new List<Elemantas>(); // pirma imtis
-           elemantai.Add(new Elemantas("e1", 1, 2, true));
-           elemantai.Add(new Elemantas("e2", 3, 4, true));
-           elemantai.Add(new Elemantas("e3", 6, 4, true));
-           elemantai.Add(new Elemantas("e4", 2, 1, false));
-           elemantai.Add(new Elemantas("e5", 4, 1, false));
-           elemantai.Add(new Elemantas("e6", 5, 2, false));
+            elementai = new List<Elementas>(); // pirma imtis
+            elementai.Add(new Elementas("e1", 1, 2, true));
+            elementai.Add(new Elementas("e2", 3, 4, true));
+            elementai.Add(new Elementas("e3", 6, 4, true));
+            elementai.Add(new Elementas("e4", 2, 1, false));
+            elementai.Add(new Elementas("e5", 4, 1, false));
+            elementai.Add(new Elementas("e6", 5, 2, false));
 
             connectionString = "../../Mokymo imtis 1.db";
             InsertIntoLitleDB();
 
-            elemantai = new List<Elemantas>();
-            elemantai.Add(new Elemantas("e1", 5, 1, true));
-            elemantai.Add(new Elemantas("e2", 3, 3, true));
-            elemantai.Add(new Elemantas("e3", 0, 3, true));
-            elemantai.Add(new Elemantas("e4", 4, 0, false));
-            elemantai.Add(new Elemantas("e5", 2, 0, false));
-            elemantai.Add(new Elemantas("e6", 1, 1, false));
+            elementai = new List<Elementas>();
+            elementai.Add(new Elementas("e1", 5, 1, true));
+            elementai.Add(new Elementas("e2", 3, 3, true));
+            elementai.Add(new Elementas("e3", 0, 3, true));
+            elementai.Add(new Elementas("e4", 4, 0, false));
+            elementai.Add(new Elementas("e5", 2, 0, false));
+            elementai.Add(new Elementas("e6", 1, 1, false));
             connectionString = "../../Mokymo imtis 2.db";
             InsertIntoLitleDB();
 
-            elemantai = new List<Elemantas>();
-            elemantai.Add(new Elemantas("e1", 0, 2, true));
-            elemantai.Add(new Elemantas("e2", 2, 0, true));
-            elemantai.Add(new Elemantas("e3", 5, 0, true));
-            elemantai.Add(new Elemantas("e4", 1, 3, false));
-            elemantai.Add(new Elemantas("e5", 3, 3, false));
-            elemantai.Add(new Elemantas("e6", 4, 2, false));
+            elementai = new List<Elementas>();
+            elementai.Add(new Elementas("e1", 0, 2, true));
+            elementai.Add(new Elementas("e2", 2, 0, true));
+            elementai.Add(new Elementas("e3", 5, 0, true));
+            elementai.Add(new Elementas("e4", 1, 3, false));
+            elementai.Add(new Elementas("e5", 3, 3, false));
+            elementai.Add(new Elementas("e6", 4, 2, false));
             connectionString = "../../Mokymo imtis 3.db";
             InsertIntoLitleDB();
 
-            elemantai = new List<Elemantas>();
-            elemantai.Add(new Elemantas("e1", 6, 3, true));
-            elemantai.Add(new Elemantas("e2", 4, 1, true));
-            elemantai.Add(new Elemantas("e3", 1, 1, true));
-            elemantai.Add(new Elemantas("e4", 5, 4, false));
-            elemantai.Add(new Elemantas("e5", 3, 4, false));
-            elemantai.Add(new Elemantas("e6", 2, 3, false));
+            elementai = new List<Elementas>();
+            elementai.Add(new Elementas("e1", 6, 3, true));
+            elementai.Add(new Elementas("e2", 4, 1, true));
+            elementai.Add(new Elementas("e3", 1, 1, true));
+            elementai.Add(new Elementas("e4", 5, 4, false));
+            elementai.Add(new Elementas("e5", 3, 4, false));
+            elementai.Add(new Elementas("e6", 2, 3, false));
             connectionString = "../../Mokymo imtis 4.db";
             InsertIntoLitleDB();
         }
-
-        private void DataGridView1_ColumnAdded(object sender, DataGridViewColumnEventArgs e)
+        // kai pakeičia duomeni arba atnaujiname arba pritedam nauja elementa i sarasa
+        private void DataGridView1_RowLeave(object sender, DataGridViewCellEventArgs e)
         {
-
-        }
-
-        private void DataGridView1_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)
-        {
-
+            var ro = ((DataGridView)sender).Rows[e.RowIndex];
+            if (ro.Cells[0].Value != null && ro.Cells[1].Value != null && ro.Cells[2].Value != null && ro.Cells[3].Value != null)
+            {
+                if (ro.Cells[0].Value.ToString() != "" && ro.Cells[1].Value.ToString() != "" && ro.Cells[2].Value.ToString() != "" && ro.Cells[3].Value.ToString() != "")
+                {
+                    if (elementai.Count > e.RowIndex)
+                    {
+                        elementai[e.RowIndex].name = ro.Cells[0].EditedFormattedValue.ToString();
+                        elementai[e.RowIndex].x1 = float.Parse(ro.Cells[1].EditedFormattedValue.ToString());
+                        elementai[e.RowIndex].x2 = float.Parse(ro.Cells[2].EditedFormattedValue.ToString());
+                        elementai[e.RowIndex].posible = ro.Cells[3].EditedFormattedValue.ToString() == "+" ? true : false;
+                    }
+                    else
+                    {
+                        Elementas el = new Elementas(ro.Cells[0].Value.ToString(), float.Parse(ro.Cells[1].Value.ToString()), float.Parse(ro.Cells[2].Value.ToString()), ro.Cells[3].Value.ToString() == "+" ? true : false);
+                        elementai.Add(el);
+                    }
+                }
+            }
         }
     }
 }
